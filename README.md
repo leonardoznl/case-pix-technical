@@ -141,7 +141,7 @@ docker compose up -d
 ```bash
 set PIX_API_KEY=change-me
 ```
-3. Rode a aplicaÃ§Ã£o:
+3. Rode a aplicação:
 ```bash
 mvn spring-boot:run
 ```
