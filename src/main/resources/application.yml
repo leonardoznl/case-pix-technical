@@ -1,0 +1,60 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: case-pix-technical
+  jackson:
+    time-zone: America/Sao_Paulo
+    serialization:
+      write-dates-as-timestamps: false
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/pixdb
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000
+          multiplier: 3.0
+          max-interval: 15000
+
+pix:
+  mq:
+    exchange: pix.exchange
+    request-queue: pix.request.queue
+    response-queue: pix.response.queue
+    routing-key: pix.request
+    request-dlq: pix.request.dlq
+    response-dlq: pix.response.dlq
+    dead-letter-exchange: pix.dlx
+  fraud:
+    base-url: https://case-pix-technical.free.beeceptor.com/fraud
+    timeout-ms: 1500
+    retry:
+      max-attempts: 3
+      initial-interval-ms: 200
+      max-interval-ms: 1000
+  webhook:
+    url: ${PIX_WEBHOOK_URL:https://case-pix-technical.free.beeceptor.com/webhook}
+    timeout-ms: 1500
+  api-key: ${PIX_API_KEY:change-me}
+
+logging:
+  level:
+    root: INFO
+    com.example.pix: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

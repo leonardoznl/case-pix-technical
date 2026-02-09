@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+  title: case-pix-technical API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+security:
+  - ApiKeyAuth: []
+paths:
+  /pix:
+    post:
+      summary: Create Pix payment
+      tags:
+        - pix
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PixPaymentRequest'
+            example:
+              amount: 150.75
+              payerKey: chave-pagador
+              receiverKey: chave-recebedor
+              description: Pedido 123
+      responses:
+        '202':
+          description: Accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixResponse'
+              example:
+                transactionId: 9b5a8d0f-3f79-4b7c-8c7b-64b7f6f1c7a1
+                status: PROCESSING
+                message: sent-to-banco-central
+        '422':
+          description: Rejected by fraud
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixResponse'
+              example:
+                transactionId: null
+                status: REJECTED_FRAUD
+                message: suspicious-activity
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '502':
+          description: Upstream failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /pix/{transactionId}/status:
+    get:
+      summary: Get Pix status
+      tags:
+        - pix
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Current status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixStatusResponse'
+        '401':
+          description: Missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+  /pix/{transactionId}/communications:
+    get:
+      summary: List Pix communications
+      tags:
+        - pix
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Communication history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PixCommunicationResponse'
+        '401':
+          description: Missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  schemas:
+    PixPaymentRequest:
+      type: object
+      required:
+        - amount
+        - payerKey
+        - receiverKey
+      properties:
+        amount:
+          type: number
+          format: decimal
+        payerKey:
+          type: string
+        receiverKey:
+          type: string
+        description:
+          type: string
+    PixResponse:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        transactionId:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/PixStatus'
+        message:
+          type: string
+    PixStatusResponse:
+      type: object
+      required:
+        - transactionId
+        - status
+        - direction
+        - updatedAt
+      properties:
+        transactionId:
+          type: string
+        status:
+          $ref: '#/components/schemas/PixStatus'
+        direction:
+          $ref: '#/components/schemas/PixDirection'
+        updatedAt:
+          type: string
+          format: date-time
+    PixCommunicationResponse:
+      type: object
+      required:
+        - direction
+        - status
+        - payload
+        - createdAt
+      properties:
+        direction:
+          $ref: '#/components/schemas/PixDirection'
+        status:
+          $ref: '#/components/schemas/PixStatus'
+        payload:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    PixStatus:
+      type: string
+      enum:
+        - PROCESSING
+        - REJECTED_FRAUD
+        - SENT_TO_BC
+        - CONFIRMED
+        - REJECTED_BC
+        - ERROR
+    PixDirection:
+      type: string
+      enum:
+        - REQUEST
+        - RESPONSE
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+        header:
+          type: string

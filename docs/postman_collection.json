@@ -1,0 +1,69 @@
+{
+  "info": {
+    "name": "case-pix-technical",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "apiKey",
+      "value": "change-me"
+    },
+    {
+      "key": "transactionId",
+      "value": "<uuid>"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Pix",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-KEY",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 150.75,\n  \"payerKey\": \"chave-pagador\",\n  \"receiverKey\": \"chave-recebedor\",\n  \"description\": \"Pedido 123\"\n}"
+        },
+        "url": "{{baseUrl}}/pix"
+      }
+    },
+    {
+      "name": "Get Pix Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-KEY",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/pix/{{transactionId}}/status"
+      }
+    },
+    {
+      "name": "List Pix Communications",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-KEY",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/pix/{{transactionId}}/communications"
+      }
+    }
+  ]
+}
